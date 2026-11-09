@@ -1,0 +1,7 @@
+streamlit
+moviepy
+Pillow
+opencv-python
+numpy
+arabic-reshaper
+python-bidi
