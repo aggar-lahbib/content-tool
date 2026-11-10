@@ -13,13 +13,27 @@ from moviepy.editor import VideoFileClip, ImageClip, CompositeVideoClip, AudioFi
 import arabic_reshaper
 from bidi.algorithm import get_display
 import numpy as np
+import urllib.request
 
 st.set_page_config(
-    page_title="تطبيق صناع المحتوى الاحترافي V6",
+    page_title="تطبيق صناع المحتوى الاحترافي V7",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# دالة لتحميل خط عربي عصري افتراضي تلقائياً إن لم يرفع المستخدم خطاً
+def get_default_arabic_font():
+    font_path = "Tajawal-Bold.ttf"
+    if not os.path.exists(font_path):
+        try:
+            url = "https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Bold.ttf"
+            urllib.request.urlretrieve(url, font_path)
+        except:
+            pass
+    if os.path.exists(font_path):
+        return font_path
+    return None
 
 st.markdown("""
     <style>
@@ -41,11 +55,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار السادس V6)")
-st.markdown("### إضافة اللوجو بمرونة كاملة، دعم ملفات الصوت بصيغة OGA، تجاوز فلاتر فيسبوك، وتصميم الأغلفة.")
+st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار السابع V7)")
+st.markdown("### تصحيح نهائي ومطلق لنصوص اللغة العربية، دعم الخطوط العصرية، اللوجو المرن، ودعم صوتيات OGA.")
 
 # Sidebar Settings
-st.sidebar.header("⚙️ إعدادات الهوية والشعار")
+st.sidebar.header("⚙️ إعدادات الهوية والشعار والخطوط")
 logo_file = st.sidebar.file_uploader("ارفع شعارك الشفاف (PNG أو JPG)", type=["png", "jpg"])
 logo_opacity = st.sidebar.slider("شفافية اللوجو", min_value=0.1, max_value=1.0, value=0.4, step=0.05)
 logo_position = st.sidebar.selectbox(
@@ -68,9 +82,19 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📷 معالجة الصور"
 ])
 
+# تحديد مسار الخط العربي (المرفوع أو التلقائي العصري)
+active_font_path = None
+if font_file:
+    t_font = tempfile.NamedTemporaryFile(delete=False, suffix=".ttf")
+    t_font.write(font_file.read())
+    t_font.close()
+    active_font_path = t_font.name
+else:
+    active_font_path = get_default_arabic_font()
+
 with tab1:
     st.header("🎬 معالجة الفيديو وإزالة الأثر الأصلي")
-    st.markdown("يقوم التطبيق بقص الأطراف، تغيير البصمة الرقمية (Hash)، مسح البيانات الوصفية (Metadata)، ودمج الصوت (يدعم MP3, WAV, M4A, OGA).")
+    st.markdown("يقوم التطبيق بقص الأطراف، تغيير البصمة الرقمية (Hash)، مسح البيانات الوصفية (Metadata)، ودعم النصوص العربية بوضوح تام.")
     
     video_file = st.file_uploader("اختر فيديو من هاتفك أو جهازك", type=["mp4", "mov", "avi", "mkv"], key="vid")
     audio_file = st.file_uploader("اختر ملف صوتي جديد / موسيقى بديلة (يدعم oga, mp3, wav, m4a)", type=["mp3", "wav", "m4a", "oga"], key="aud")
@@ -80,13 +104,13 @@ with tab1:
         ["استبدال الصوت الأصلي بالكامل (إزالة صوت التيكتوك/إنستغرام القديم)", "دمج الصوت الجديد مع خفض الصوت الأصلي"]
     )
 
-    caption = st.text_input("النص البارز على واجهة الفيديو (اختياري)", placeholder="اكتب جملة تحفيزية أو عنواناً يظهر أسفل الفيديو...")
+    caption = st.text_input("النص العربي البارز على واجهة الفيديو (اختياري)", placeholder="اكتب جملة تحفيزية أو عنواناً يظهر أسفل الفيديو...")
 
     if st.button("🚀 بدء معالجة الفيديو وحماية الملكية", type="primary"):
         if not video_file:
             st.error("الرجاء رفع الفيديو أولاً!")
         else:
-            with st.spinner("⏳ جاري معالجة الفيديو، تطبيق الفلتر، هندسة الصوت، وتغيير البصمة الرقمية..."):
+            with st.spinner("⏳ جاري معالجة الفيديو، ضبط الخط العربي، تطبيق الفلتر، وتغيير البصمة الرقمية..."):
                 t_vid = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                 t_vid.write(video_file.read())
                 t_vid.close()
@@ -104,13 +128,6 @@ with tab1:
                     t_aud.write(audio_file.read())
                     t_aud.close()
                     audio_path = t_aud.name
-
-                font_path = None
-                if font_file:
-                    t_font = tempfile.NamedTemporaryFile(delete=False, suffix=".ttf")
-                    t_font.write(font_file.read())
-                    t_font.close()
-                    font_path = t_font.name
 
                 output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
 
@@ -166,28 +183,40 @@ with tab1:
                             
                         clips_to_composite.append(logo)
 
+                    # معالجة وصياغة النص العربي بدقة متناهية
                     if caption:
-                        img = Image.new("RGBA", (w - 8, h - 8), (0, 0, 0, 0))
-                        draw = ImageDraw.Draw(img)
+                        img_txt = Image.new("RGBA", (w, 150), (0, 0, 0, 0))
+                        draw = ImageDraw.Draw(img_txt)
+                        
                         try:
-                            font = ImageFont.truetype(font_path, 35) if font_path and os.path.exists(font_path) else ImageFont.load_default()
+                            font_size = max(35, int(w * 0.05))
+                            font = ImageFont.truetype(active_font_path, font_size) if active_font_path and os.path.exists(active_font_path) else ImageFont.load_default()
                         except:
                             font = ImageFont.load_default()
 
                         reshaped_text = arabic_reshaper.reshape(caption)
                         bidi_text = get_display(reshaped_text)
-                        bbox = draw.textbbox((0, 0), bidi_text, font=font)
-                        txt_w, txt_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-                        x, y = ((w - 8) - txt_w) / 2, (h - 8) - txt_h - 120
 
-                        for adj_x in range(-2, 3):
-                            for adj_y in range(-2, 3):
-                                draw.text((x + adj_x, y + adj_y), bidi_text, font=font, fill="black")
-                        draw.text((x, y), bidi_text, font=font, fill="white")
+                        bbox = draw.textbbox((0, 0), bidi_text, font=font)
+                        txt_w = bbox[2] - bbox[0]
+                        txt_h = bbox[3] - bbox[1]
+                        
+                        img_final_txt = Image.new("RGBA", (w, txt_h + 40), (0, 0, 0, 0))
+                        draw_final = ImageDraw.Draw(img_final_txt)
+                        
+                        x = (w - txt_w) / 2
+                        y = 15
+
+                        for adj_x in range(-3, 4):
+                            for adj_y in range(-3, 4):
+                                draw_final.text((x + adj_x, y + adj_y), bidi_text, font=font, fill=(0, 0, 0, 220))
+                        
+                        draw_final.text((x, y), bidi_text, font=font, fill=(255, 255, 255, 255))
 
                         temp_txt_path = tempfile.NamedTemporaryFile(delete=False, suffix=".png").name
-                        img.save(temp_txt_path)
-                        text_clip = ImageClip(temp_txt_path).set_duration(modified_video.duration).set_position(("center", "bottom"))
+                        img_final_txt.save(temp_txt_path)
+                        
+                        text_clip = ImageClip(temp_txt_path).set_duration(modified_video.duration).set_position(("center", h - txt_h - 100))
                         clips_to_composite.append(text_clip)
 
                     final_video = CompositeVideoClip(clips_to_composite)
@@ -212,10 +241,10 @@ with tab1:
 
 with tab2:
     st.header("🖼️ استخراج وتصميم غلاف الريلز (Thumbnail)")
-    st.markdown("التقاط لقطة احترافية من الفيديو وإضافة عنوان بارز وشعارك لزيادة نسبة النقر والمشاهدات (CTR).")
+    st.markdown("التقاط لقطة احترافية من الفيديو وإضافة عنوان عربي بارز بخط عصري وشعارك لزيادة المشاهدات.")
     
     thumb_video = st.file_uploader("اختر الفيديو لاستخراج الغلاف منه", type=["mp4", "mov", "avi"], key="thumb_vid")
-    thumb_title = st.text_input("اكتب العنوان البارز للغلاف (مثلاً: مفاجأة مذهلة لا تفوتك! 🔥)", placeholder="عنوان الغلاف...")
+    thumb_title = st.text_input("اكتب عنوان الغلاف البارز (مثلاً: مفاجأة مذهلة لا تفوتك! 🔥)", placeholder="عنوان الغلاف...")
     
     if thumb_video:
         t_vid_thumb = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -244,7 +273,7 @@ with tab2:
             if thumb_title:
                 draw = ImageDraw.Draw(img)
                 try:
-                    font = ImageFont.truetype(font_path, 45) if font_path and os.path.exists(font_path) else ImageFont.load_default()
+                    font = ImageFont.truetype(active_font_path, 45) if active_font_path and os.path.exists(active_font_path) else ImageFont.load_default()
                 except:
                     font = ImageFont.load_default()
                 
