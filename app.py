@@ -1,7 +1,14 @@
+from PIL import Image
+try:
+    if not hasattr(Image, 'ANTIALIAS'):
+        Image.ANTIALIAS = Image.Resampling.LANCZOS
+except:
+    pass
+
 import streamlit as st
 import os
 import tempfile
-from PIL import Image, ImageEnhance, ImageDraw, ImageFont
+from PIL import ImageEnhance, ImageDraw, ImageFont
 from moviepy.editor import VideoFileClip, ImageClip, CompositeVideoClip, AudioFileClip, vfx
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -111,14 +118,10 @@ with tab1:
                     video = VideoFileClip(t_vid.name)
                     w, h = video.size
 
-                    # 1. Micro-cropping
                     crop_margin = 4
                     cropped_video = video.crop(x1=crop_margin, y1=crop_margin, x2=w - crop_margin, y2=h - crop_margin)
-                    
-                    # 2. Speed adjustment
                     modified_video = cropped_video.fx(vfx.speedx, 1.01)
 
-                    # 3. Color filter
                     if filter_option == "فيلتر دافئ (Canon Look)":
                         modified_video = modified_video.fx(vfx.colorx, 1.05)
                     elif filter_option == "فيلتر سينمائي بارد":
@@ -126,7 +129,6 @@ with tab1:
                     else:
                         modified_video = modified_video.fx(vfx.colorx, 1.03)
 
-                    # 4. Audio handling (including OGA support)
                     if audio_path and os.path.exists(audio_path):
                         new_audio = AudioFileClip(audio_path)
                         if new_audio.duration > modified_video.duration:
@@ -144,7 +146,6 @@ with tab1:
 
                     clips_to_composite = [modified_video]
 
-                    # 5. Logo positioning with flexible options
                     if logo_path and os.path.exists(logo_path):
                         logo = ImageClip(logo_path).resize(width=int(w * 0.22))
                         logo = logo.set_opacity(logo_opacity)
@@ -165,7 +166,6 @@ with tab1:
                             
                         clips_to_composite.append(logo)
 
-                    # 6. Arabic Text on Video
                     if caption:
                         img = Image.new("RGBA", (w - 8, h - 8), (0, 0, 0, 0))
                         draw = ImageDraw.Draw(img)
@@ -192,7 +192,6 @@ with tab1:
 
                     final_video = CompositeVideoClip(clips_to_composite)
                     
-                    # 7. Export with metadata stripping & faststart
                     final_video.write_videofile(
                         output_path,
                         codec="libx264",
@@ -278,7 +277,7 @@ with tab3:
             st.warning("الرجاء كتابة موضوع الفيديو أولاً!")
         else:
             st.subheader("📌 اقتراح نص المنشور:")
-            post_template = f"🔥 محتوى استثنائي حصري حول ({topic_input}). لا تفوتوا المشاهدة ومشاركة الأصدقاء! 👇✨\\n\\n🎯 شاركونا بآرائكم في التعليقات ولا تنسوا المتابعة للمزيد!"
+            post_template = f"🔥 محتوى استثنائي حصري حول ({topic_input}). لا تفوتوا المشاهدة ومشاركة الأصدقاء! 👇✨\n\n🎯 شاركونا بآرائكم في التعليقات ولا تنسوا المتابعة للمزيد!"
             st.code(post_template, language="markdown")
 
             st.subheader("#️⃣ الهاشتاغات الفيروسية المقترحة لزيادة التفاعل:")
