@@ -1,7 +1,7 @@
-streamlit
+streamlit==1.32.0
 moviepy==1.0.3
-Pillow
-opencv-python
-numpy
-arabic-reshaper
-python-bidi
+Pillow==9.5.0
+opencv-python==4.8.1.78
+numpy==1.26.4
+arabic-reshaper==3.1.0
+python-bidi==0.6.12
