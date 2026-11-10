@@ -16,7 +16,7 @@ import numpy as np
 import urllib.request
 
 st.set_page_config(
-    page_title="تطبيق صناع المحتوى الاحترافي V9",
+    page_title="تطبيق صناع المحتوى الاحترافي V10",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -54,10 +54,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار التاسع V9)")
-st.markdown("### حل نهائي لمشكلة الأبعاد الفردية للاتساق مع H.264، دقة تصدير فائقة، تحكم باللوجو، والأغلفة الذكية.")
+st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار العاشر V10)")
+st.markdown("### معالجة مستقرة 100%، منع أخطاء الأبعاد الفردية، تصدير عالي الجودة، ودعم الصوتيات والغلاف الذكي.")
 
-# Sidebar Settings
 st.sidebar.header("⚙️ إعدادات الهوية والشعار والخطوط")
 logo_file = st.sidebar.file_uploader("ارفع شعارك الشفاف (PNG أو JPG)", type=["png", "jpg"])
 logo_opacity = st.sidebar.slider("شفافية اللوجو", min_value=0.1, max_value=1.0, value=0.4, step=0.05)
@@ -79,18 +78,15 @@ tab1, tab2, tab3 = st.tabs([
     "📷 معالجة الصور الثابتة"
 ])
 
-active_font_path = None
+active_font_path = font_file.name if font_file else get_default_arabic_font()
 if font_file:
     t_font = tempfile.NamedTemporaryFile(delete=False, suffix=".ttf")
     t_font.write(font_file.read())
     t_font.close()
     active_font_path = t_font.name
-else:
-    active_font_path = get_default_arabic_font()
 
 with tab1:
     st.header("🎬 معالجة الفيديو بدقة فائقة وإزالة الأثر الأصلي")
-    st.markdown("دعم تصدير من HD حتى 8K، معالجة تلقائية للأبعاد الزوجية لمنع أخطاء المشفر، وعزل الصوت.")
     
     video_file = st.file_uploader("اختر فيديو المعالجة الأساسي", type=["mp4", "mov", "avi", "mkv"], key="vid")
     music_source_file = st.file_uploader("اختر فيديو أو ملف صوتي لاستخراج وعزل الموسيقى منه (اختياري)", type=["mp4", "mov", "avi", "mp3", "wav", "m4a", "oga"], key="mus_src")
@@ -104,7 +100,7 @@ with tab1:
     with col_q1:
         quality_option = st.selectbox(
             "اختر دقة التصدير والجودة",
-            ["أصلية (Original)", "720p HD", "1080p Full HD", "2K / 4K Ultra", "8K Cinematic Extreme"]
+            ["أصلية (Original)", "720p HD", "1080p Full HD", "2K / 4K Ultra"]
         )
     with col_q2:
         text_color_option = st.selectbox(
@@ -118,7 +114,7 @@ with tab1:
         if not video_file:
             st.error("الرجاء رفع الفيديو الأساسي أولاً!")
         else:
-            with st.spinner("⏳ جاري استخراج الصوت، هندسة الفيديو، ضبط الأبعاد الزوجية، وتعديل البصمة..."):
+            with st.spinner("⏳ جاري استخراج الصوت، هندسة الفيديو، وضبط التوافق التقني..."):
                 t_vid = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                 t_vid.write(video_file.read())
                 t_vid.close()
@@ -157,35 +153,36 @@ with tab1:
                     video = VideoFileClip(t_vid.name)
                     w, h = video.size
 
-                    # ضبط الدقة بناءً على اختيار المستخدم
-                    target_h = h
+                    # تعديل الأبعاد حسب الجودة المختارة مع ضمان بقائها أرقاماً زوجية بدقة
                     if quality_option == "720p HD":
                         target_h = 720
                     elif quality_option == "1080p Full HD":
                         target_h = 1080
                     elif quality_option == "2K / 4K Ultra":
                         target_h = 2160
-                    elif quality_option == "8K Cinematic Extreme":
-                        target_h = 4320
+                    else:
+                        target_h = h
 
                     if target_h != h:
                         video = video.resize(height=target_h)
                         w, h = video.size
 
-                    # 🔑 الحل البرمجي الأساسي: ضمان أن العرض والارتفاع أرقام زوجية ليتوافق مع libx264
-                    w = int(w) - (int(w) % 2)
-                    h = int(h) - (int(h) % 2)
+                    # فرض الزوجية المطلقة للأبعاد لمنع أخطاء المشفر
+                    w = w - (w % 2)
+                    h = h - (h % 2)
                     video = video.resize((w, h))
 
+                    # قص أطراف طفيف لتغيير البصمة الرقمية
                     crop_margin = 4
-                    cropped_video = video.crop(x1=crop_margin, y1=crop_margin, x2=w - crop_margin, y2=h - crop_margin)
-                    
-                    # إعادة ضبط الأبعاد بعد القص لضمان الزوجية مرة أخرى
-                    cw, ch = cropped_video.size
-                    cw = int(cw) - (int(cw) % 2)
-                    ch = int(ch) - (int(ch) % 2)
-                    cropped_video = cropped_video.resize((cw, ch))
-                    w, h = cw, ch
+                    if w > 20 and h > 20:
+                        cropped_video = video.crop(x1=crop_margin, y1=crop_margin, x2=w - crop_margin, y2=h - crop_margin)
+                        cw, ch = cropped_video.size
+                        cw = cw - (cw % 2)
+                        ch = ch - (ch % 2)
+                        cropped_video = cropped_video.resize((cw, ch))
+                        w, h = cw, ch
+                    else:
+                        cropped_video = video
 
                     modified_video = cropped_video.fx(vfx.speedx, 1.01)
 
@@ -214,20 +211,27 @@ with tab1:
                     clips_to_composite = [modified_video]
 
                     if logo_path and os.path.exists(logo_path):
-                        logo = ImageClip(logo_path).resize(width=int(w * 0.22))
+                        logo_w = int(w * 0.22)
+                        logo_w = logo_w - (logo_w % 2)
+                        logo = ImageClip(logo_path).resize(width=logo_w)
                         logo = logo.set_opacity(logo_opacity)
                         logo = logo.set_duration(modified_video.duration)
                         
+                        lw_val, lh_val = logo.size
+                        lw_val = lw_val - (lw_val % 2)
+                        lh_val = lh_val - (lh_val % 2)
+                        logo = logo.resize((lw_val, lh_val))
+
                         if logo_position == "الوسط (Center)":
                             logo = logo.set_position(("center", "center"))
                         elif logo_position == "الربع السفلي (Bottom Quarter)":
                             logo = logo.set_position(("center", int(h * 0.75)))
                         elif logo_position == "أسفل اليمين":
-                            logo = logo.set_position((w - logo.w - 20, h - logo.h - 20))
+                            logo = logo.set_position((w - lw_val - 20, h - lh_val - 20))
                         elif logo_position == "أسفل اليسار":
-                            logo = logo.set_position((20, h - logo.h - 20))
+                            logo = logo.set_position((20, h - lh_val - 20))
                         elif logo_position == "أعلى اليمين":
-                            logo = logo.set_position((w - logo.w - 20, 20))
+                            logo = logo.set_position((w - lw_val - 20, 20))
                         elif logo_position == "أعلى اليسار":
                             logo = logo.set_position((20, 20))
                         else:
@@ -236,9 +240,6 @@ with tab1:
                         clips_to_composite.append(logo)
 
                     if caption:
-                        img_txt = Image.new("RGBA", (w, 150), (0, 0, 0, 0))
-                        draw = ImageDraw.Draw(img_txt)
-                        
                         try:
                             font_size = max(35, int(w * 0.04))
                             font = ImageFont.truetype(active_font_path, font_size) if active_font_path and os.path.exists(active_font_path) else ImageFont.load_default()
@@ -248,17 +249,20 @@ with tab1:
                         reshaped_text = arabic_reshaper.reshape(caption)
                         bidi_text = get_display(reshaped_text)
 
-                        bbox = draw.textbbox((0, 0), bidi_text, font=font)
+                        dummy_img = Image.new("RGBA", (10, 10))
+                        dummy_draw = ImageDraw.Draw(dummy_img)
+                        bbox = dummy_draw.textbbox((0, 0), bidi_text, font=font)
                         txt_w = bbox[2] - bbox[0]
                         txt_h = bbox[3] - bbox[1]
                         
-                        img_final_txt = Image.new("RGBA", (w, txt_h + 50), (0, 0, 0, 0))
-                        draw_final = ImageDraw.Draw(img_final_txt)
-                        
-                        draw_final.rounded_rectangle([ (w - txt_w - 40)/2, 5, (w + txt_w + 40)/2, txt_h + 45 ], radius=15, fill=(0, 0, 0, 160))
+                        box_w = int(txt_w + 40)
+                        box_w = box_w - (box_w % 2)
+                        box_h = int(txt_h + 40)
+                        box_h = box_h - (box_h % 2)
 
-                        x = (w - txt_w) / 2
-                        y = 15
+                        img_final_txt = Image.new("RGBA", (box_w, box_h), (0, 0, 0, 0))
+                        draw_final = ImageDraw.Draw(img_final_txt)
+                        draw_final.rounded_rectangle([0, 0, box_w, box_h], radius=15, fill=(0, 0, 0, 160))
 
                         text_rgb = (255, 255, 255)
                         if text_color_option == "أصفر فاقع (Yellow)":
@@ -270,12 +274,12 @@ with tab1:
                         elif text_color_option == "أزرق سماوي (Cyan)":
                             text_rgb = (3, 169, 244)
 
-                        draw_final.text((x, y), bidi_text, font=font, fill=text_rgb)
+                        draw_final.text(((box_w - txt_w) / 2, (box_h - txt_h) / 2 - 5), bidi_text, font=font, fill=text_rgb)
 
                         temp_txt_path = tempfile.NamedTemporaryFile(delete=False, suffix=".png").name
                         img_final_txt.save(temp_txt_path)
                         
-                        text_clip = ImageClip(temp_txt_path).set_duration(modified_video.duration).set_position(("center", h - txt_h - 120))
+                        text_clip = ImageClip(temp_txt_path).set_duration(modified_video.duration).set_position(("center", h - box_h - 100))
                         clips_to_composite.append(text_clip)
 
                     final_video = CompositeVideoClip(clips_to_composite)
@@ -290,19 +294,17 @@ with tab1:
                         ffmpeg_params=["-pix_fmt", "yuv420p", "-movflags", "+faststart", "-map_metadata", "-1"]
                     )
 
-                    st.success("🎉 تم معالجة الفيديو بدقة فائقة وأصبح جاهزاً كفيديو أصلي 100%!")
+                    st.success("🎉 تم معالجة الفيديو بنجاح تام!")
                     st.video(output_path)
                     with open(output_path, "rb") as f:
-                        st.download_button("📥 تحميل الفيديو المعالج بدقة عالية", f, file_name="high_quality_native_video.mp4", mime="video/mp4")
+                        st.download_button("📥 تحميل الفيديو المعالج", f, file_name="processed_viral_video.mp4", mime="video/mp4")
 
                 except Exception as e:
-                    st.error(f"❌ حدث خطأ أثناء المعالجة: {e}")
+                    st.error(f"❌ حدث خطأ أثناء المعالجة التقنية: {e}")
 
 with tab2:
-    st.header("🖼️ استخراج وتصميم غلاف الريلز الذكي (Auto Smart Thumbnail)")
-    st.markdown("يقوم النظام تلقائياً بتحليل الفيديوهات واقتراح أكثر لقطة حماسية لاستقطاب أعلى عدد من المشاهدات (CTR).")
-    
-    thumb_video = st.file_uploader("اختر الفيديو لاستخراج الغلاف الذكي منه", type=["mp4", "mov", "avi"], key="thumb_vid")
+    st.header("🖼️ استخراج وتصميم غلاف الريلز الذكي")
+    thumb_video = st.file_uploader("اختر الفيديو لاستخراج الغلاف", type=["mp4", "mov", "avi"], key="thumb_vid")
     thumb_title = st.text_input("عنوان الغلاف البارز (اختياري)", placeholder="اكتب العنوان لجذب الانتباه...")
     
     if thumb_video:
@@ -316,7 +318,7 @@ with tab2:
         
         time_second = st.slider("اختر توقيت اللقطة:", min_value=0.0, max_value=float(duration), value=float(suggested_time))
         
-        if st.button("✨ توليد وتصميم الغلاف الذكي الفيروسي", type="primary"):
+        if st.button("✨ توليد وتصميم الغلاف الذكي", type="primary"):
             frame = vid_clip.get_frame(time_second)
             img = Image.fromarray(frame)
             
@@ -350,10 +352,10 @@ with tab2:
             thumb_out_path = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg").name
             img.save(thumb_out_path, quality=95)
             
-            st.success("✅ تم استخراج وتصميم الغلاف الذكي بنجاح!")
-            st.image(thumb_out_path, caption="الصورة المصغرة الذكية الفيروسية")
+            st.success("✅ تم تصدير الغلاف بنجاح!")
+            st.image(thumb_out_path, caption="الصورة المصغرة الذكية")
             with open(thumb_out_path, "rb") as f:
-                st.download_button("📥 تحميل غلاف الريلز (Smart Thumbnail)", f, file_name="smart_viral_thumbnail.jpg", mime="image/jpeg")
+                st.download_button("📥 تحميل غلاف الريلز", f, file_name="smart_thumbnail.jpg", mime="image/jpeg")
 
 with tab3:
     st.header("📷 معالجة الصور الثابتة وتعديل البصمة")
