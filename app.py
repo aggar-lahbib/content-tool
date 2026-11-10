@@ -8,13 +8,12 @@ from bidi.algorithm import get_display
 import numpy as np
 
 st.set_page_config(
-    page_title="تطبيق صناع المحتوى الاحترافي",
+    page_title="تطبيق صناع المحتوى الاحترافي V6",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for Mobile & Desktop UI Polish
 st.markdown("""
     <style>
     .main {
@@ -32,19 +31,21 @@ st.markdown("""
     .stButton>button:hover {
         background-color: #ff2121;
     }
-    .css-1104ytp {
-        border-radius: 12px;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى")
-st.markdown("### تجاوز فلاتر فيسبوك، حماية الملكية، عزل الصوت، تصميم الأغلفة، وتوليد الهاشتاغات الفيروسية.")
+st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار السادس V6)")
+st.markdown("### إضافة اللوجو بمرونة كاملة، دعم ملفات الصوت بصيغة OGA، تجاوز فلاتر فيسبوك، وتصميم الأغلفة.")
 
 # Sidebar Settings
-st.sidebar.header("⚙️ إعدادات الهوية والعلامة التجارية")
-logo_file = st.sidebar.file_uploader("ارفع شعارك الشفاف (PNG)", type=["png", "jpg"])
-logo_opacity = st.sidebar.slider("شفافية اللوجو في الوسط", min_value=0.1, max_value=0.8, value=0.3, step=0.05)
+st.sidebar.header("⚙️ إعدادات الهوية والشعار")
+logo_file = st.sidebar.file_uploader("ارفع شعارك الشفاف (PNG أو JPG)", type=["png", "jpg"])
+logo_opacity = st.sidebar.slider("شفافية اللوجو", min_value=0.1, max_value=1.0, value=0.4, step=0.05)
+logo_position = st.sidebar.selectbox(
+    "موقع اللوجو على الفيديو",
+    ["الوسط (Center)", "أسفل اليمين", "أسفل اليسار", "أعلى اليمين", "أعلى اليسار"]
+)
+
 font_file = st.sidebar.file_uploader("ارفع خطاً عربياً مخصصاً (اختياري - TTF)", type=["ttf"])
 
 filter_option = st.sidebar.selectbox(
@@ -62,10 +63,10 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 with tab1:
     st.header("🎬 معالجة الفيديو وإزالة الأثر الأصلي")
-    st.markdown("يقوم التطبيق بقص الأطراف، تغيير البصمة الرقمية (Hash)، مسح البيانات الوصفية (Metadata)، ودمج الصوت.")
+    st.markdown("يقوم التطبيق بقص الأطراف، تغيير البصمة الرقمية (Hash)، مسح البيانات الوصفية (Metadata)، ودمج الصوت (يدعم MP3, WAV, M4A, OGA).")
     
     video_file = st.file_uploader("اختر فيديو من هاتفك أو جهازك", type=["mp4", "mov", "avi", "mkv"], key="vid")
-    audio_file = st.file_uploader("اختر ملف صوتي جديد / موسيقى بديلة (اختياري)", type=["mp3", "wav", "m4a"], key="aud")
+    audio_file = st.file_uploader("اختر ملف صوتي جديد / موسيقى بديلة (يدعم oga, mp3, wav, m4a)", type=["mp3", "wav", "m4a", "oga"], key="aud")
     
     audio_mode = st.radio(
         "وضع هندسة الصوت:",
@@ -92,7 +93,7 @@ with tab1:
 
                 audio_path = None
                 if audio_file:
-                    t_aud = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+                    t_aud = tempfile.NamedTemporaryFile(delete=False, suffix=".oga")
                     t_aud.write(audio_file.read())
                     t_aud.close()
                     audio_path = t_aud.name
@@ -110,14 +111,14 @@ with tab1:
                     video = VideoFileClip(t_vid.name)
                     w, h = video.size
 
-                    # 1. Micro-cropping لتغيير البصمة والأبعاد
+                    # 1. Micro-cropping
                     crop_margin = 4
                     cropped_video = video.crop(x1=crop_margin, y1=crop_margin, x2=w - crop_margin, y2=h - crop_margin)
                     
-                    # 2. تغيير السرعة بنسبة بسيطة (1.01x) لتغيير ترددات الصوت والبصمة
+                    # 2. Speed adjustment
                     modified_video = cropped_video.fx(vfx.speedx, 1.01)
 
-                    # 3. الفلتر اللوني (محاكاة الكاميرا)
+                    # 3. Color filter
                     if filter_option == "فيلتر دافئ (Canon Look)":
                         modified_video = modified_video.fx(vfx.colorx, 1.05)
                     elif filter_option == "فيلتر سينمائي بارد":
@@ -125,7 +126,7 @@ with tab1:
                     else:
                         modified_video = modified_video.fx(vfx.colorx, 1.03)
 
-                    # 4. معالجة الصوت
+                    # 4. Audio handling (including OGA support)
                     if audio_path and os.path.exists(audio_path):
                         new_audio = AudioFileClip(audio_path)
                         if new_audio.duration > modified_video.duration:
@@ -143,14 +144,28 @@ with tab1:
 
                     clips_to_composite = [modified_video]
 
-                    # 5. اللوجو في وسط الشاشة بشفافية ذكية
+                    # 5. Logo positioning with flexible options
                     if logo_path and os.path.exists(logo_path):
-                        logo = ImageClip(logo_path).resize(width=int(w * 0.25))
+                        logo = ImageClip(logo_path).resize(width=int(w * 0.22))
                         logo = logo.set_opacity(logo_opacity)
-                        logo = logo.set_duration(modified_video.duration).set_position(("center", "center"))
+                        logo = logo.set_duration(modified_video.duration)
+                        
+                        if logo_position == "الوسط (Center)":
+                            logo = logo.set_position(("center", "center"))
+                        elif logo_position == "أسفل اليمين":
+                            logo = logo.set_position((w - logo.w - 20, h - logo.h - 20))
+                        elif logo_position == "أسفل اليسار":
+                            logo = logo.set_position((20, h - logo.h - 20))
+                        elif logo_position == "أعلى اليمين":
+                            logo = logo.set_position((w - logo.w - 20, 20))
+                        elif logo_position == "أعلى اليسار":
+                            logo = logo.set_position((20, 20))
+                        else:
+                            logo = logo.set_position(("center", "center"))
+                            
                         clips_to_composite.append(logo)
 
-                    # 6. النص العربي على واجهة الفيديو
+                    # 6. Arabic Text on Video
                     if caption:
                         img = Image.new("RGBA", (w - 8, h - 8), (0, 0, 0, 0))
                         draw = ImageDraw.Draw(img)
@@ -177,7 +192,7 @@ with tab1:
 
                     final_video = CompositeVideoClip(clips_to_composite)
                     
-                    # 7. التصدير بمعايير فيسبوك وإزالة الروابط والبيانات الوصفية بالكامل
+                    # 7. Export with metadata stripping & faststart
                     final_video.write_videofile(
                         output_path,
                         codec="libx264",
@@ -263,7 +278,7 @@ with tab3:
             st.warning("الرجاء كتابة موضوع الفيديو أولاً!")
         else:
             st.subheader("📌 اقتراح نص المنشور:")
-            post_template = f"🔥 محتوى استثنائي حصري حول ({topic_input}). لا تفوتوا المشاهدة ومشاركة الأصدقاء! 👇✨\n\n🎯 شاركونا بآرائكم في التعليقات ولا تنسوا المتابعة للمزيد!"
+            post_template = f"🔥 محتوى استثنائي حصري حول ({topic_input}). لا تفوتوا المشاهدة ومشاركة الأصدقاء! 👇✨\\n\\n🎯 شاركونا بآرائكم في التعليقات ولا تنسوا المتابعة للمزيد!"
             st.code(post_template, language="markdown")
 
             st.subheader("#️⃣ الهاشتاغات الفيروسية المقترحة لزيادة التفاعل:")
