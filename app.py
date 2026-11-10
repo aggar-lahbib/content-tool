@@ -16,7 +16,7 @@ import numpy as np
 import urllib.request
 
 st.set_page_config(
-    page_title="تطبيق صناع المحتوى الاحترافي V8",
+    page_title="تطبيق صناع المحتوى الاحترافي V9",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -54,8 +54,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار الثامن V8)")
-st.markdown("### دقة تصدير خرافية (720p حتى 8K)، تحكم كامل بموقع اللوجو، تخصيص ألوان وإطارات النصوص، واستخراج الغلاف الذكي تلقائياً.")
+st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار التاسع V9)")
+st.markdown("### حل نهائي لمشكلة الأبعاد الفردية للاتساق مع H.264، دقة تصدير فائقة، تحكم باللوجو، والأغلفة الذكية.")
 
 # Sidebar Settings
 st.sidebar.header("⚙️ إعدادات الهوية والشعار والخطوط")
@@ -73,7 +73,6 @@ filter_option = st.sidebar.selectbox(
     ["فيلتر دافئ (Canon Look)", "فيلتر طبيعي (سحب طفيف بالألوان)", "فيلتر سينمائي بارد", "بدون فيلتر إضافي"]
 )
 
-# Tabs Navigation
 tab1, tab2, tab3 = st.tabs([
     "🎬 معالجة الفيديو والبصمة", 
     "🖼️ استخراج وتصميم غلاف الريلز الذكي", 
@@ -91,7 +90,7 @@ else:
 
 with tab1:
     st.header("🎬 معالجة الفيديو بدقة فائقة وإزالة الأثر الأصلي")
-    st.markdown("دعم كامل لاستخراج الفيديو بأبعادات عالية جداً من HD وحتى 8K، عزل واستخراج الصوت من فيديو الأمانة/الموسيقى، وتخصيص ألوان وأشكال النصوص.")
+    st.markdown("دعم تصدير من HD حتى 8K، معالجة تلقائية للأبعاد الزوجية لمنع أخطاء المشفر، وعزل الصوت.")
     
     video_file = st.file_uploader("اختر فيديو المعالجة الأساسي", type=["mp4", "mov", "avi", "mkv"], key="vid")
     music_source_file = st.file_uploader("اختر فيديو أو ملف صوتي لاستخراج وعزل الموسيقى منه (اختياري)", type=["mp4", "mov", "avi", "mp3", "wav", "m4a", "oga"], key="mus_src")
@@ -119,7 +118,7 @@ with tab1:
         if not video_file:
             st.error("الرجاء رفع الفيديو الأساسي أولاً!")
         else:
-            with st.spinner("⏳ جاري استخراج الصوت، هندسة الفيديو، تطبيق الدقة المختارة وتعديل البصمة..."):
+            with st.spinner("⏳ جاري استخراج الصوت، هندسة الفيديو، ضبط الأبعاد الزوجية، وتعديل البصمة..."):
                 t_vid = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                 t_vid.write(video_file.read())
                 t_vid.close()
@@ -158,6 +157,7 @@ with tab1:
                     video = VideoFileClip(t_vid.name)
                     w, h = video.size
 
+                    # ضبط الدقة بناءً على اختيار المستخدم
                     target_h = h
                     if quality_option == "720p HD":
                         target_h = 720
@@ -172,8 +172,21 @@ with tab1:
                         video = video.resize(height=target_h)
                         w, h = video.size
 
+                    # 🔑 الحل البرمجي الأساسي: ضمان أن العرض والارتفاع أرقام زوجية ليتوافق مع libx264
+                    w = int(w) - (int(w) % 2)
+                    h = int(h) - (int(h) % 2)
+                    video = video.resize((w, h))
+
                     crop_margin = 4
                     cropped_video = video.crop(x1=crop_margin, y1=crop_margin, x2=w - crop_margin, y2=h - crop_margin)
+                    
+                    # إعادة ضبط الأبعاد بعد القص لضمان الزوجية مرة أخرى
+                    cw, ch = cropped_video.size
+                    cw = int(cw) - (int(cw) % 2)
+                    ch = int(ch) - (int(ch) % 2)
+                    cropped_video = cropped_video.resize((cw, ch))
+                    w, h = cw, ch
+
                     modified_video = cropped_video.fx(vfx.speedx, 1.01)
 
                     if filter_option == "فيلتر دافئ (Canon Look)":
@@ -287,7 +300,7 @@ with tab1:
 
 with tab2:
     st.header("🖼️ استخراج وتصميم غلاف الريلز الذكي (Auto Smart Thumbnail)")
-    st.markdown("يقوم النظام تلقائياً بتحليل الفيديوهات واقتراح أكثر لقطة حماسية لاستقطاب أعلى عدد من المشاهدات (CTR)، مع إمكانية تعديلها.")
+    st.markdown("يقوم النظام تلقائياً بتحليل الفيديوهات واقتراح أكثر لقطة حماسية لاستقطاب أعلى عدد من المشاهدات (CTR).")
     
     thumb_video = st.file_uploader("اختر الفيديو لاستخراج الغلاف الذكي منه", type=["mp4", "mov", "avi"], key="thumb_vid")
     thumb_title = st.text_input("عنوان الغلاف البارز (اختياري)", placeholder="اكتب العنوان لجذب الانتباه...")
@@ -299,10 +312,9 @@ with tab2:
         
         vid_clip = VideoFileClip(t_vid_thumb.name)
         duration = vid_clip.duration
-        
         suggested_time = min(2.5, duration / 3.0)
         
-        time_second = st.slider("اختر توقيت اللقطة (تم اختيار اللقطة الأنسب ذكياً بالافتراضي):", min_value=0.0, max_value=float(duration), value=float(suggested_time))
+        time_second = st.slider("اختر توقيت اللقطة:", min_value=0.0, max_value=float(duration), value=float(suggested_time))
         
         if st.button("✨ توليد وتصميم الغلاف الذكي الفيروسي", type="primary"):
             frame = vid_clip.get_frame(time_second)
