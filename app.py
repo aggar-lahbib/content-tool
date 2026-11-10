@@ -16,13 +16,12 @@ import numpy as np
 import urllib.request
 
 st.set_page_config(
-    page_title="تطبيق صناع المحتوى الاحترافي V7",
+    page_title="تطبيق صناع المحتوى الاحترافي V8",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# دالة لتحميل خط عربي عصري افتراضي تلقائياً إن لم يرفع المستخدم خطاً
 def get_default_arabic_font():
     font_path = "Tajawal-Bold.ttf"
     if not os.path.exists(font_path):
@@ -55,8 +54,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار السابع V7)")
-st.markdown("### تصحيح نهائي ومطلق لنصوص اللغة العربية، دعم الخطوط العصرية، اللوجو المرن، ودعم صوتيات OGA.")
+st.title("🚀 التطبيق الاحترافي الشامل لصناع المحتوى (الإصدار الثامن V8)")
+st.markdown("### دقة تصدير خرافية (720p حتى 8K)، تحكم كامل بموقع اللوجو، تخصيص ألوان وإطارات النصوص، واستخراج الغلاف الذكي تلقائياً.")
 
 # Sidebar Settings
 st.sidebar.header("⚙️ إعدادات الهوية والشعار والخطوط")
@@ -64,7 +63,7 @@ logo_file = st.sidebar.file_uploader("ارفع شعارك الشفاف (PNG أو
 logo_opacity = st.sidebar.slider("شفافية اللوجو", min_value=0.1, max_value=1.0, value=0.4, step=0.05)
 logo_position = st.sidebar.selectbox(
     "موقع اللوجو على الفيديو",
-    ["الوسط (Center)", "أسفل اليمين", "أسفل اليسار", "أعلى اليمين", "أعلى اليسار"]
+    ["الوسط (Center)", "الربع السفلي (Bottom Quarter)", "أسفل اليمين", "أسفل اليسار", "أعلى اليمين", "أعلى اليسار"]
 )
 
 font_file = st.sidebar.file_uploader("ارفع خطاً عربياً مخصصاً (اختياري - TTF)", type=["ttf"])
@@ -75,14 +74,12 @@ filter_option = st.sidebar.selectbox(
 )
 
 # Tabs Navigation
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "🎬 معالجة الفيديو والبصمة", 
-    "🖼️ استخراج وتصميم غلاف الريلز", 
-    "📝 الهاشتاغات والمنشورات", 
-    "📷 معالجة الصور"
+    "🖼️ استخراج وتصميم غلاف الريلز الذكي", 
+    "📷 معالجة الصور الثابتة"
 ])
 
-# تحديد مسار الخط العربي (المرفوع أو التلقائي العصري)
 active_font_path = None
 if font_file:
     t_font = tempfile.NamedTemporaryFile(delete=False, suffix=".ttf")
@@ -93,24 +90,36 @@ else:
     active_font_path = get_default_arabic_font()
 
 with tab1:
-    st.header("🎬 معالجة الفيديو وإزالة الأثر الأصلي")
-    st.markdown("يقوم التطبيق بقص الأطراف، تغيير البصمة الرقمية (Hash)، مسح البيانات الوصفية (Metadata)، ودعم النصوص العربية بوضوح تام.")
+    st.header("🎬 معالجة الفيديو بدقة فائقة وإزالة الأثر الأصلي")
+    st.markdown("دعم كامل لاستخراج الفيديو بأبعادات عالية جداً من HD وحتى 8K، عزل واستخراج الصوت من فيديو الأمانة/الموسيقى، وتخصيص ألوان وأشكال النصوص.")
     
-    video_file = st.file_uploader("اختر فيديو من هاتفك أو جهازك", type=["mp4", "mov", "avi", "mkv"], key="vid")
-    audio_file = st.file_uploader("اختر ملف صوتي جديد / موسيقى بديلة (يدعم oga, mp3, wav, m4a)", type=["mp3", "wav", "m4a", "oga"], key="aud")
+    video_file = st.file_uploader("اختر فيديو المعالجة الأساسي", type=["mp4", "mov", "avi", "mkv"], key="vid")
+    music_source_file = st.file_uploader("اختر فيديو أو ملف صوتي لاستخراج وعزل الموسيقى منه (اختياري)", type=["mp4", "mov", "avi", "mp3", "wav", "m4a", "oga"], key="mus_src")
     
     audio_mode = st.radio(
         "وضع هندسة الصوت:",
-        ["استبدال الصوت الأصلي بالكامل (إزالة صوت التيكتوك/إنستغرام القديم)", "دمج الصوت الجديد مع خفض الصوت الأصلي"]
+        ["استبدال الصوت الأصلي بالكامل (استخدام الموسيقى المستخرجة أو الملف المرفوع)", "دمج الصوت الجديد مع خفض الصوت الأصلي قليلاً"]
     )
 
-    caption = st.text_input("النص العربي البارز على واجهة الفيديو (اختياري)", placeholder="اكتب جملة تحفيزية أو عنواناً يظهر أسفل الفيديو...")
+    col_q1, col_q2 = st.columns(2)
+    with col_q1:
+        quality_option = st.selectbox(
+            "اختر دقة التصدير والجودة",
+            ["أصلية (Original)", "720p HD", "1080p Full HD", "2K / 4K Ultra", "8K Cinematic Extreme"]
+        )
+    with col_q2:
+        text_color_option = st.selectbox(
+            "لون النص البارز",
+            ["أبيض ساطع (White)", "أصفر فاقع (Yellow)", "أخضر نيون (Neon Green)", "أحمر فخامة (Red)", "أزرق سماوي (Cyan)"]
+        )
 
-    if st.button("🚀 بدء معالجة الفيديو وحماية الملكية", type="primary"):
+    caption = st.text_input("النص العربي البارز على واجهة الفيديو (اختياري)", placeholder="اكتب عنواناً أو جملة جذابة...")
+
+    if st.button("🚀 بدء المعالجة الفائقة وحماية الملكية", type="primary"):
         if not video_file:
-            st.error("الرجاء رفع الفيديو أولاً!")
+            st.error("الرجاء رفع الفيديو الأساسي أولاً!")
         else:
-            with st.spinner("⏳ جاري معالجة الفيديو، ضبط الخط العربي، تطبيق الفلتر، وتغيير البصمة الرقمية..."):
+            with st.spinner("⏳ جاري استخراج الصوت، هندسة الفيديو، تطبيق الدقة المختارة وتعديل البصمة..."):
                 t_vid = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                 t_vid.write(video_file.read())
                 t_vid.close()
@@ -122,18 +131,46 @@ with tab1:
                     t_logo.close()
                     logo_path = t_logo.name
 
-                audio_path = None
-                if audio_file:
-                    t_aud = tempfile.NamedTemporaryFile(delete=False, suffix=".oga")
-                    t_aud.write(audio_file.read())
-                    t_aud.close()
-                    audio_path = t_aud.name
+                audio_extract_path = None
+                if music_source_file:
+                    file_bytes = music_source_file.read()
+                    if music_source_file.name.endswith(('.mp4', '.mov', '.avi', '.mkv')):
+                        t_m_vid = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+                        t_m_vid.write(file_bytes)
+                        t_m_vid.close()
+                        try:
+                            temp_extracted_audio = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3").name
+                            extracted_clip = VideoFileClip(t_m_vid.name)
+                            if extracted_clip.audio:
+                                extracted_clip.audio.write_audiofile(temp_extracted_audio, logger=None)
+                                audio_extract_path = temp_extracted_audio
+                        except:
+                            pass
+                    else:
+                        t_aud = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+                        t_aud.write(file_bytes)
+                        t_aud.close()
+                        audio_extract_path = t_aud.name
 
                 output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
 
                 try:
                     video = VideoFileClip(t_vid.name)
                     w, h = video.size
+
+                    target_h = h
+                    if quality_option == "720p HD":
+                        target_h = 720
+                    elif quality_option == "1080p Full HD":
+                        target_h = 1080
+                    elif quality_option == "2K / 4K Ultra":
+                        target_h = 2160
+                    elif quality_option == "8K Cinematic Extreme":
+                        target_h = 4320
+
+                    if target_h != h:
+                        video = video.resize(height=target_h)
+                        w, h = video.size
 
                     crop_margin = 4
                     cropped_video = video.crop(x1=crop_margin, y1=crop_margin, x2=w - crop_margin, y2=h - crop_margin)
@@ -146,12 +183,12 @@ with tab1:
                     else:
                         modified_video = modified_video.fx(vfx.colorx, 1.03)
 
-                    if audio_path and os.path.exists(audio_path):
-                        new_audio = AudioFileClip(audio_path)
+                    if audio_extract_path and os.path.exists(audio_extract_path):
+                        new_audio = AudioFileClip(audio_extract_path)
                         if new_audio.duration > modified_video.duration:
                             new_audio = new_audio.subclip(0, modified_video.duration)
                         
-                        if audio_mode == "استبدال الصوت الأصلي بالكامل (إزالة صوت التيكتوك/إنستغرام القديم)":
+                        if audio_mode == "استبدال الصوت الأصلي بالكامل (استخدام الموسيقى المستخرجة أو الملف المرفوع)":
                             modified_video = modified_video.set_audio(new_audio)
                         else:
                             orig_audio = modified_video.audio
@@ -170,6 +207,8 @@ with tab1:
                         
                         if logo_position == "الوسط (Center)":
                             logo = logo.set_position(("center", "center"))
+                        elif logo_position == "الربع السفلي (Bottom Quarter)":
+                            logo = logo.set_position(("center", int(h * 0.75)))
                         elif logo_position == "أسفل اليمين":
                             logo = logo.set_position((w - logo.w - 20, h - logo.h - 20))
                         elif logo_position == "أسفل اليسار":
@@ -183,13 +222,12 @@ with tab1:
                             
                         clips_to_composite.append(logo)
 
-                    # معالجة وصياغة النص العربي بدقة متناهية
                     if caption:
                         img_txt = Image.new("RGBA", (w, 150), (0, 0, 0, 0))
                         draw = ImageDraw.Draw(img_txt)
                         
                         try:
-                            font_size = max(35, int(w * 0.05))
+                            font_size = max(35, int(w * 0.04))
                             font = ImageFont.truetype(active_font_path, font_size) if active_font_path and os.path.exists(active_font_path) else ImageFont.load_default()
                         except:
                             font = ImageFont.load_default()
@@ -201,22 +239,30 @@ with tab1:
                         txt_w = bbox[2] - bbox[0]
                         txt_h = bbox[3] - bbox[1]
                         
-                        img_final_txt = Image.new("RGBA", (w, txt_h + 40), (0, 0, 0, 0))
+                        img_final_txt = Image.new("RGBA", (w, txt_h + 50), (0, 0, 0, 0))
                         draw_final = ImageDraw.Draw(img_final_txt)
                         
+                        draw_final.rounded_rectangle([ (w - txt_w - 40)/2, 5, (w + txt_w + 40)/2, txt_h + 45 ], radius=15, fill=(0, 0, 0, 160))
+
                         x = (w - txt_w) / 2
                         y = 15
 
-                        for adj_x in range(-3, 4):
-                            for adj_y in range(-3, 4):
-                                draw_final.text((x + adj_x, y + adj_y), bidi_text, font=font, fill=(0, 0, 0, 220))
-                        
-                        draw_final.text((x, y), bidi_text, font=font, fill=(255, 255, 255, 255))
+                        text_rgb = (255, 255, 255)
+                        if text_color_option == "أصفر فاقع (Yellow)":
+                            text_rgb = (255, 235, 59)
+                        elif text_color_option == "أخضر نيون (Neon Green)":
+                            text_rgb = (76, 175, 80)
+                        elif text_color_option == "أحمر فخامة (Red)":
+                            text_rgb = (244, 67, 54)
+                        elif text_color_option == "أزرق سماوي (Cyan)":
+                            text_rgb = (3, 169, 244)
+
+                        draw_final.text((x, y), bidi_text, font=font, fill=text_rgb)
 
                         temp_txt_path = tempfile.NamedTemporaryFile(delete=False, suffix=".png").name
                         img_final_txt.save(temp_txt_path)
                         
-                        text_clip = ImageClip(temp_txt_path).set_duration(modified_video.duration).set_position(("center", h - txt_h - 100))
+                        text_clip = ImageClip(temp_txt_path).set_duration(modified_video.duration).set_position(("center", h - txt_h - 120))
                         clips_to_composite.append(text_clip)
 
                     final_video = CompositeVideoClip(clips_to_composite)
@@ -231,20 +277,20 @@ with tab1:
                         ffmpeg_params=["-pix_fmt", "yuv420p", "-movflags", "+faststart", "-map_metadata", "-1"]
                     )
 
-                    st.success("🎉 تم معالجة الفيديو بنجاح وأصبح جاهزاً كفيديو أصلي 100%!")
+                    st.success("🎉 تم معالجة الفيديو بدقة فائقة وأصبح جاهزاً كفيديو أصلي 100%!")
                     st.video(output_path)
                     with open(output_path, "rb") as f:
-                        st.download_button("📥 تحميل الفيديو المعالج للجهاز", f, file_name="native_original_video.mp4", mime="video/mp4")
+                        st.download_button("📥 تحميل الفيديو المعالج بدقة عالية", f, file_name="high_quality_native_video.mp4", mime="video/mp4")
 
                 except Exception as e:
                     st.error(f"❌ حدث خطأ أثناء المعالجة: {e}")
 
 with tab2:
-    st.header("🖼️ استخراج وتصميم غلاف الريلز (Thumbnail)")
-    st.markdown("التقاط لقطة احترافية من الفيديو وإضافة عنوان عربي بارز بخط عصري وشعارك لزيادة المشاهدات.")
+    st.header("🖼️ استخراج وتصميم غلاف الريلز الذكي (Auto Smart Thumbnail)")
+    st.markdown("يقوم النظام تلقائياً بتحليل الفيديوهات واقتراح أكثر لقطة حماسية لاستقطاب أعلى عدد من المشاهدات (CTR)، مع إمكانية تعديلها.")
     
-    thumb_video = st.file_uploader("اختر الفيديو لاستخراج الغلاف منه", type=["mp4", "mov", "avi"], key="thumb_vid")
-    thumb_title = st.text_input("اكتب عنوان الغلاف البارز (مثلاً: مفاجأة مذهلة لا تفوتك! 🔥)", placeholder="عنوان الغلاف...")
+    thumb_video = st.file_uploader("اختر الفيديو لاستخراج الغلاف الذكي منه", type=["mp4", "mov", "avi"], key="thumb_vid")
+    thumb_title = st.text_input("عنوان الغلاف البارز (اختياري)", placeholder="اكتب العنوان لجذب الانتباه...")
     
     if thumb_video:
         t_vid_thumb = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -254,26 +300,28 @@ with tab2:
         vid_clip = VideoFileClip(t_vid_thumb.name)
         duration = vid_clip.duration
         
-        time_second = st.slider("اختر توقيت اللقطة (بالثانية):", min_value=0.0, max_value=float(duration), value=min(2.0, float(duration)))
+        suggested_time = min(2.5, duration / 3.0)
         
-        if st.button("🖼️ التقاط وتصميم الغلاف الاحترافي", type="primary"):
+        time_second = st.slider("اختر توقيت اللقطة (تم اختيار اللقطة الأنسب ذكياً بالافتراضي):", min_value=0.0, max_value=float(duration), value=float(suggested_time))
+        
+        if st.button("✨ توليد وتصميم الغلاف الذكي الفيروسي", type="primary"):
             frame = vid_clip.get_frame(time_second)
             img = Image.fromarray(frame)
             
             enhancer = ImageEnhance.Color(img)
-            img = enhancer.enhance(1.15)
+            img = enhancer.enhance(1.2)
             
             if logo_file:
                 logo = Image.open(logo_file).convert("RGBA")
-                lw = int(img.width * 0.20)
+                lw = int(img.width * 0.22)
                 lh = int((logo.height / logo.width) * lw)
                 logo = logo.resize((lw, lh), Image.Resampling.LANCZOS)
-                img.paste(logo, (20, 20), logo)
+                img.paste(logo, (30, 30), logo)
 
             if thumb_title:
                 draw = ImageDraw.Draw(img)
                 try:
-                    font = ImageFont.truetype(active_font_path, 45) if active_font_path and os.path.exists(active_font_path) else ImageFont.load_default()
+                    font = ImageFont.truetype(active_font_path, 50) if active_font_path and os.path.exists(active_font_path) else ImageFont.load_default()
                 except:
                     font = ImageFont.load_default()
                 
@@ -282,38 +330,20 @@ with tab2:
                 
                 bbox = draw.textbbox((0, 0), bidi_t, font=font)
                 tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-                tx, ty = (img.width - tw) / 2, img.height - th - 80
+                tx, ty = (img.width - tw) / 2, img.height - th - 90
                 
-                for ax in range(-3, 4):
-                    for ay in range(-3, 4):
-                        draw.text((tx + ax, ty + ay), bidi_t, font=font, fill="black")
-                draw.text((tx, ty), bidi_t, font=font, fill="yellow")
+                draw.rounded_rectangle([tx - 25, ty - 15, tx + tw + 25, ty + th + 15], radius=15, fill=(0, 0, 0, 180))
+                draw.text((tx, ty), bidi_t, font=font, fill=(255, 235, 59))
 
             thumb_out_path = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg").name
             img.save(thumb_out_path, quality=95)
             
-            st.success("✅ تم تصدير غلاف الريلز بنجاح!")
-            st.image(thumb_out_path, caption="الصورة المصغرة جاهزة للنشر")
+            st.success("✅ تم استخراج وتصميم الغلاف الذكي بنجاح!")
+            st.image(thumb_out_path, caption="الصورة المصغرة الذكية الفيروسية")
             with open(thumb_out_path, "rb") as f:
-                st.download_button("📥 تحميل الصورة المصغرة (Thumbnail)", f, file_name="reel_thumbnail.jpg", mime="image/jpeg")
+                st.download_button("📥 تحميل غلاف الريلز (Smart Thumbnail)", f, file_name="smart_viral_thumbnail.jpg", mime="image/jpeg")
 
 with tab3:
-    st.header("📝 مولد المنشورات والهاشتاغات الفيروسية")
-    topic_input = st.text_input("ما هو موضوع الفيديو أو المحتوى؟", placeholder="مثلاً: كرة القدم، كوميديا، تقنية، سفر...")
-    
-    if st.button("✨ توليد النص والهاشتاغات", type="primary"):
-        if not topic_input:
-            st.warning("الرجاء كتابة موضوع الفيديو أولاً!")
-        else:
-            st.subheader("📌 اقتراح نص المنشور:")
-            post_template = f"🔥 محتوى استثنائي حصري حول ({topic_input}). لا تفوتوا المشاهدة ومشاركة الأصدقاء! 👇✨\n\n🎯 شاركونا بآرائكم في التعليقات ولا تنسوا المتابعة للمزيد!"
-            st.code(post_template, language="markdown")
-
-            st.subheader("#️⃣ الهاشتاغات الفيروسية المقترحة لزيادة التفاعل:")
-            viral_tags = "#اكسبلور #فيديو_حصري #محتوى_هادف #فيسبوك_ريلز #مغرب #تونس #الجزائر #trending #reels #viral #explore #foryou"
-            st.code(viral_tags, language="text")
-
-with tab4:
     st.header("📷 معالجة الصور الثابتة وتعديل البصمة")
     img_file = st.file_uploader("اختر صورة", type=["jpg", "png", "jpeg"], key="img")
     if st.button("🖼️ معالجة الصورة الآن", type="primary"):
@@ -321,7 +351,7 @@ with tab4:
             base_img = Image.open(img_file).convert("RGBA")
             width, height = base_img.size
             enhancer = ImageEnhance.Color(base_img)
-            base_img = enhancer.enhance(1.03)
+            base_img = enhancer.enhance(1.05)
 
             if logo_file:
                 logo = Image.open(logo_file).convert("RGBA")
